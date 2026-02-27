@@ -1,51 +1,40 @@
-package com.example.Almasoft2.controller
+package com.example.cronograma.controller
 
-import com.example.Almasoft2.model.Usuario
-import com.example.Almasoft2.service.ConexionService
+import com.example.cronograma.model.Contrato
+import com.example.cronograma.service.ConexionService
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping
-class ConexionController(private val conexionService: ConexionService) {
+@RequestMapping("/api")
+class ConexionController(
+    private val conexionService: ConexionService
+) {
 
-    // 🔹 GET → Todos los usuarios
-    @GetMapping("/usuarios")
-    fun obtenerUsuarios(): List<Usuario> {
-        return conexionService.obtenerUsuarios()
+    @GetMapping("/cronogramas")
+    fun verCronogramas(): List<Contrato> {
+        return conexionService.obtenerContratos()
     }
 
-    // 🔹 GET → Usuario por ID
-    @GetMapping("/usuarios/{id}")
-    fun obtenerUsuarioPorId(@PathVariable id: Int): Usuario? {
-        return conexionService.obtenerUsuarioPorId(id)
+    @GetMapping("/cronogramas/{id}")
+    fun verCronogramaPorId(@PathVariable id: Int): Contrato? {
+        return conexionService.obtenerContratoPorId(id)
     }
 
-    // 🔹 POST → Crear usuario
-    @PostMapping("/usuarios")
-    fun guardarUsuario(@RequestBody usuario: Usuario): String {
-        return conexionService.guardarUsuario(usuario)
+    @PostMapping("/cronogramas")
+    fun crearCronograma(@RequestBody contrato: Contrato): String {
+        return conexionService.crearContrato(contrato)
     }
 
-    // 🔹 DELETE → Eliminar usuario
-    @DeleteMapping("/usuarios/{id}")
-    fun eliminarUsuario(@PathVariable id: Int): String {
-        return conexionService.eliminarUsuario(id)
+    @PutMapping("/cronogramas/{id}")
+    fun actualizarCronograma(
+        @PathVariable id: Int,
+        @RequestBody contrato: Contrato
+    ): String {
+        return conexionService.actualizarContrato(id, contrato)
     }
 
-    // 🔹 POST → Login
-    @PostMapping("/login")
-    fun login(@RequestBody usuario: Usuario): Map<String, Any> {
-
-        val esValido = conexionService.login(
-            usuario.usuario_correo!!,
-            usuario.usuario_documento!!
-        )
-
-        return if (esValido) {
-            mapOf("success" to true, "message" to "Login exitoso")
-        } else {
-            mapOf("success" to false, "message" to "Credenciales incorrectas")
-        }
+    @DeleteMapping("/cronogramas/{id}")
+    fun eliminarCronograma(@PathVariable id: Int): String {
+        return conexionService.eliminarContrato(id)
     }
 }
-
