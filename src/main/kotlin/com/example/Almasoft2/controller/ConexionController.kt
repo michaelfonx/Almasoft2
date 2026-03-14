@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api")
-class ConexionController(
+class  ConexionController(
     private val conexionService: ConexionService
 ) {
 

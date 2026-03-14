@@ -1,4 +1,4 @@
-/*ackage com.example.cronograma.controller
+package com.example.cronograma.controller
 
 import com.example.cronograma.model.*
 import com.example.cronograma.security.JwtUtil
@@ -24,22 +24,16 @@ class AuthController(
     @PostMapping("/login")
     fun login(
         @RequestBody login: LoginRequest
-    ): LoginResponse? {
+    ): LoginResponse {
 
         val usuario = usuarioService.login(
             login.usuario_correo,
             login.usuario_credencial
-        )
+        ) ?: throw RuntimeException("Credenciales incorrectas")
 
-        return if (usuario != null) {
+        val token = jwtUtil.generarToken(usuario.usuario_correo)
 
-            val token = jwtUtil.generarToken(usuario.usuario_correo)
-
-            LoginResponse(token)
-
-        } else {
-
-            null
-        }
+        return LoginResponse(token)
     }
-}*/
+
+}
