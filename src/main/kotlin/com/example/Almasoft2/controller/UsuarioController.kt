@@ -1,7 +1,8 @@
 package com.example.cronograma.controller
 
-import com.example.cronograma.model.Usuario
-import com.example.cronograma.service.UsuarioService
+import com.example.Almasoft2.model.Usuario
+import com.example.Almasoft2.service.UsuarioService
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -16,27 +17,30 @@ class UsuarioController(
     }
 
     @GetMapping("/{id}")
-    fun obtenerUsuarioPorId(
-        @PathVariable id: Int
-    ): Usuario? {
-
+    fun obtenerUsuarioPorId(@PathVariable id: Int): Usuario? {
         return usuarioService.obtenerUsuarioPorId(id)
     }
+
 
     @PutMapping("/{id}")
     fun actualizarUsuario(
         @PathVariable id: Int,
         @RequestBody usuario: Usuario
-    ): String {
+    ): ResponseEntity<Map<String, String>> {
 
-        return usuarioService.actualizarUsuario(id, usuario)
+        val (status, mensaje) = usuarioService.actualizarUsuario(id, usuario)
+
+        return ResponseEntity.status(status)
+            .body(mapOf("mensaje" to mensaje))
     }
 
-    @DeleteMapping("/{id}")
-    fun eliminarUsuario(
-        @PathVariable id: Int
-    ): String {
 
-        return usuarioService.eliminarUsuario(id)
+    @DeleteMapping("/{id}")
+    fun eliminarUsuario(@PathVariable id: Int): ResponseEntity<Map<String, String>> {
+
+        val (status, mensaje) = usuarioService.eliminarUsuario(id)
+
+        return ResponseEntity.status(status)
+            .body(mapOf("mensaje" to mensaje))
     }
 }

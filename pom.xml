@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -16,25 +15,45 @@
     <artifactId>Almasoft2</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>Almasoft2</name>
-    <description>Demo project for Spring Boot</description>
+    <description>Spring Boot Kotlin Project</description>
 
     <properties>
         <java.version>17</java.version>
-        <kotlin.version>1.9.22</kotlin.version>
+        <kotlin.version>1.9.25</kotlin.version>
         <kotlin.compiler.jvmTarget>17</kotlin.compiler.jvmTarget>
     </properties>
 
     <dependencies>
 
-        <!-- SPRING -->
+        <!-- SPRING WEB -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- 🔐 SECURITY (AGREGADO) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- SPRING DATA JPA -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!-- JDBC -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+
+        <!-- MYSQL -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
         </dependency>
 
         <!-- JACKSON -->
@@ -51,15 +70,7 @@
 
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib-jdk8</artifactId>
-            <version>${kotlin.version}</version>
-        </dependency>
-
-        <!-- MYSQL -->
-        <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <scope>runtime</scope>
+            <artifactId>kotlin-stdlib</artifactId>
         </dependency>
 
         <!-- JWT -->
@@ -96,19 +107,12 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-test</artifactId>
-            <version>${kotlin.version}</version>
-            <scope>test</scope>
-        </dependency>
-
     </dependencies>
 
     <build>
 
         <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
-        <testSourceDirectory>src/test/kotlin</testSourceDirectory>
+        <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
 
         <plugins>
 
@@ -149,6 +153,8 @@
                 </executions>
 
                 <configuration>
+                    <jvmTarget>${java.version}</jvmTarget>
+
                     <args>
                         <arg>-Xjsr305=strict</arg>
                     </args>
@@ -156,8 +162,6 @@
                     <compilerPlugins>
                         <plugin>spring</plugin>
                     </compilerPlugins>
-
-                    <jvmTarget>17</jvmTarget>
 
                 </configuration>
 
