@@ -35,18 +35,44 @@ class ContratoPlanService(
 
     fun crear(relacion: ContratoPlan): String {
 
-        val sql = """
-            INSERT INTO contrato_plan (contrato_id, plan_id)
-            VALUES (?, ?)
-        """
+        try {
 
-        jdbcTemplate.update(
-            sql,
-            relacion.contrato_id,
-            relacion.plan_id
-        )
+            val existeContrato = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM contrato WHERE contrato_id = ?",
+                Int::class.java,
+                relacion.contrato_id
+            )
 
-        return "Relación contrato-plan creada"
+            val existePlan = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM plan_funebre WHERE plan_id = ?",
+                Int::class.java,
+                relacion.plan_id
+            )
+
+            if (existeContrato == 0) {
+                throw RuntimeException("Contrato no existe")
+            }
+
+            if (existePlan == 0) {
+                throw RuntimeException("Plan no existe")
+            }
+
+            val sql = """
+                INSERT INTO contrato_plan (contrato_id, plan_id)
+                VALUES (?, ?)
+            """
+
+            jdbcTemplate.update(
+                sql,
+                relacion.contrato_id,
+                relacion.plan_id
+            )
+
+            return "Relación contrato-plan creada"
+
+        } catch (e: Exception) {
+            throw RuntimeException("Error al insertar contrato_plan: ${e.message}")
+        }
     }
 
     fun actualizar(contratoId: Int, relacion: ContratoPlan): String {

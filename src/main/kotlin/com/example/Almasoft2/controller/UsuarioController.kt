@@ -1,4 +1,4 @@
-package com.example.cronograma.controller
+package com.example.Almasoft2.controller
 
 import com.example.Almasoft2.model.Usuario
 import com.example.Almasoft2.service.UsuarioService
@@ -21,7 +21,6 @@ class UsuarioController(
         return usuarioService.obtenerUsuarioPorId(id)
     }
 
-
     @PutMapping("/{id}")
     fun actualizarUsuario(
         @PathVariable id: Int,
@@ -33,7 +32,6 @@ class UsuarioController(
         return ResponseEntity.status(status)
             .body(mapOf("mensaje" to mensaje))
     }
-
 
     @DeleteMapping("/{id}")
     fun eliminarUsuario(@PathVariable id: Int): ResponseEntity<Map<String, String>> {

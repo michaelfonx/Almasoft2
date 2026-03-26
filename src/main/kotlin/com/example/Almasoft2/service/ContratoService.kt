@@ -39,12 +39,12 @@ class ContratoService(
         }.firstOrNull()
     }
 
-    fun crearContrato(contrato: Contrato): String {
+    fun crearContrato(contrato: Contrato): Int {
 
         val sql = """
-            INSERT INTO contrato (cliente_id, contrato_estado, contrato_valor)
-            VALUES (?, ?, ?)
-        """
+        INSERT INTO contrato (cliente_id, contrato_estado, contrato_valor)
+        VALUES (?, ?, ?)
+    """
 
         jdbcTemplate.update(
             sql,
@@ -53,7 +53,10 @@ class ContratoService(
             contrato.contrato_valor
         )
 
-        return "Contrato creado correctamente"
+        return jdbcTemplate.queryForObject(
+            "SELECT LAST_INSERT_ID()",
+            Int::class.java
+        )!!
     }
 
     fun actualizarContrato(id: Int, contrato: Contrato): String {
@@ -100,14 +103,14 @@ class ContratoService(
         }.firstOrNull()
     }
 
-    // 🔥 NUEVO: MI PLAN
+
     fun obtenerMiPlan(clienteId: Int): MiPlanDTO? {
 
         val contrato = obtenerContratoPorCliente(clienteId) ?: return null
 
-        // 🔹 PLAN
+
         val planSql = """
-        SELECT p.plan_id, p.plan_nombre, p.plan_precio
+        SELECT p.plan_id, p.plan_nombre, p.plan_precio, p.plan_descripcion
         FROM contrato_plan cp
         JOIN plan_funebre p ON cp.plan_id = p.plan_id
         WHERE cp.contrato_id = ?
@@ -115,18 +118,20 @@ class ContratoService(
     """
 
         val plan = jdbcTemplate.query(planSql, arrayOf(contrato.contrato_id)) { rs, _ ->
-            Triple(
+            listOf(
                 rs.getInt("plan_id"),
                 rs.getString("plan_nombre"),
-                rs.getDouble("plan_precio")
+                rs.getDouble("plan_precio"),
+                rs.getString("plan_descripcion")
             )
         }.firstOrNull() ?: return null
 
-        val planId = plan.first
-        val planNombre = plan.second
-        val planPrecio = plan.third
+        val planId = plan[0] as Int
+        val planNombre = plan[1] as String
+        val planPrecio = plan[2] as Double
+        val planDescripcion = plan[3] as String
 
-        // 🔹 SERVICIOS
+
         val serviciosSql = """
         SELECT s.servicio_nombre
         FROM servicio_plan sp
@@ -138,7 +143,6 @@ class ContratoService(
             rs.getString("servicio_nombre")
         }
 
-        // 🔥 NUEVO: PRODUCTOS
         val productosSql = """
         SELECT pr.producto_nombre
         FROM contrato_producto cp
@@ -150,7 +154,7 @@ class ContratoService(
             rs.getString("producto_nombre")
         }
 
-        // 🔥 NUEVO: PAGOS
+
         val pagosSql = """
         SELECT pago_metodo, pago_fecha
         FROM pago
@@ -158,7 +162,7 @@ class ContratoService(
     """
 
         val pagos = jdbcTemplate.query(pagosSql, arrayOf(contrato.contrato_id)) { rs, _ ->
-            com.example.cronograma.dto.PagoDTO(
+            PagoDTO(
                 metodo = rs.getString("pago_metodo"),
                 fecha = rs.getString("pago_fecha")
             )
@@ -168,6 +172,7 @@ class ContratoService(
             contrato_id = contrato.contrato_id!!,
             plan_nombre = planNombre,
             plan_precio = planPrecio,
+            plan_descripcion = planDescripcion,
             servicios = servicios,
             productos = productos,
             pagos = pagos

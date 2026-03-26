@@ -22,7 +22,7 @@ class ContratoController(
     }
 
     @PostMapping("/contratos")
-    fun crearContrato(@RequestBody contrato: Contrato): String {
+    fun crearContrato(@RequestBody contrato: Contrato): Int {
         return contratoService.crearContrato(contrato)
     }
 
