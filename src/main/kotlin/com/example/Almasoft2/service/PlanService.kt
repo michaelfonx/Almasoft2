@@ -17,7 +17,8 @@ class PlanService(
                 rs.getInt("plan_id"),
                 rs.getString("plan_nombre"),
                 rs.getDouble("plan_precio"),
-                rs.getBoolean("plan_estado")
+                rs.getBoolean("plan_estado"),
+                rs.getString("plan_descripcion")
             )
         }
     }
@@ -30,22 +31,24 @@ class PlanService(
                 rs.getInt("plan_id"),
                 rs.getString("plan_nombre"),
                 rs.getDouble("plan_precio"),
-                rs.getBoolean("plan_estado")
+                rs.getBoolean("plan_estado"),
+                rs.getString("plan_descripcion")
             )
         }.firstOrNull()
     }
 
     fun crearPlan(plan: Plan): String {
         val sql = """
-            INSERT INTO PLAN_FUNEBRE (plan_nombre, plan_precio, plan_estado)
-            VALUES (?, ?, ?)
+            INSERT INTO PLAN_FUNEBRE (plan_nombre, plan_precio, plan_estado, plan_descripcion)
+            VALUES (?, ?, ?, ?)
         """
 
         jdbcTemplate.update(
             sql,
             plan.plan_nombre,
             plan.plan_precio,
-            plan.plan_estado
+            plan.plan_estado,
+            plan.plan_descripcion
         )
 
         return "Plan creado"
@@ -54,7 +57,7 @@ class PlanService(
     fun actualizarPlan(id: Int, plan: Plan): String {
         val sql = """
             UPDATE PLAN_FUNEBRE
-            SET plan_nombre = ?, plan_precio = ?, plan_estado = ?
+            SET plan_nombre = ?, plan_precio = ?, plan_estado = ?, plan_descripcion = ?
             WHERE plan_id = ?
         """
 
@@ -63,6 +66,7 @@ class PlanService(
             plan.plan_nombre,
             plan.plan_precio,
             plan.plan_estado,
+            plan.plan_descripcion,
             id
         )
 

@@ -84,7 +84,7 @@ class PagoService(
         else "Pago no encontrado"
     }
 
-    // 🔥 EXTRA: PAGOS POR CONTRATO (IMPORTANTE PARA TU APP)
+
     fun obtenerPagosPorContrato(contratoId: Int): List<Pago> {
 
         val sql = "SELECT * FROM pago WHERE contrato_id = ?"

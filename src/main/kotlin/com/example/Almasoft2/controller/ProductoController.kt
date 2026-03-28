@@ -10,25 +10,25 @@ class ProductoController(
     private val productoService: ProductoService
 ) {
 
-    // 🔹 GET TODOS
+
     @GetMapping
     fun obtenerProductos(): List<Producto> {
         return productoService.obtenerProductos()
     }
 
-    // 🔹 GET POR ID
+
     @GetMapping("/{id}")
     fun obtenerProductoPorId(@PathVariable id: Int): Producto? {
         return productoService.obtenerProductoPorId(id)
     }
 
-    // 🔥 POST
+
     @PostMapping
     fun crearProducto(@RequestBody producto: Producto): String {
         return productoService.crearProducto(producto)
     }
 
-    // 🔹 PUT
+
     @PutMapping("/{id}")
     fun actualizarProducto(
         @PathVariable id: Int,
@@ -37,7 +37,7 @@ class ProductoController(
         return productoService.actualizarProducto(id, producto)
     }
 
-    // 🔹 DELETE
+
     @DeleteMapping("/{id}")
     fun eliminarProducto(@PathVariable id: Int): String {
         return productoService.eliminarProducto(id)

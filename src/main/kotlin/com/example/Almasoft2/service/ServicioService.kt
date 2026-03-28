@@ -34,7 +34,7 @@ class ServicioService(private val repo: ServicioRepository) {
         repo.deleteById(id)
     }
 
-    // 🔥 NUEVO
+
     fun obtenerServiciosPorCliente(clienteId: Int): List<Servicio> {
         return repo.obtenerServiciosPorCliente(clienteId)
     }

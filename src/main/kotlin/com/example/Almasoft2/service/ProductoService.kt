@@ -9,7 +9,7 @@ class ProductoService(
     private val jdbcTemplate: JdbcTemplate
 ) {
 
-    // 🔹 GET TODOS
+
     fun obtenerProductos(): List<Producto> {
 
         val sql = "SELECT * FROM producto"
@@ -27,7 +27,7 @@ class ProductoService(
         }
     }
 
-    // 🔹 GET POR ID
+
     fun obtenerProductoPorId(id: Int): Producto? {
 
         val sql = "SELECT * FROM producto WHERE producto_id = ?"
@@ -45,7 +45,7 @@ class ProductoService(
         }.firstOrNull()
     }
 
-    // 🔥 POST
+
     fun crearProducto(producto: Producto): String {
 
         val sql = """
@@ -73,7 +73,7 @@ class ProductoService(
         return "Producto creado correctamente"
     }
 
-    // 🔹 PUT
+
     fun actualizarProducto(id: Int, producto: Producto): String {
 
         val sql = """
@@ -102,7 +102,7 @@ class ProductoService(
         else "Producto no encontrado"
     }
 
-    // 🔹 DELETE
+
     fun eliminarProducto(id: Int): String {
 
         val sql = "DELETE FROM producto WHERE producto_id = ?"

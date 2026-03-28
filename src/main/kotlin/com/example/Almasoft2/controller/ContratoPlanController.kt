@@ -1,40 +1,28 @@
 package com.example.cronograma.controller
 
-import com.example.cronograma.model.ContratoPlan
-import com.example.cronograma.service.ContratoPlanService
+import com.example.cronograma.model.DTO.MiPlanDTO
+import com.example.cronograma.service.ContratoService
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/contrato-plan")
 class ContratoPlanController(
-    private val service: ContratoPlanService
+    private val contratoService: ContratoService
 ) {
 
-    @GetMapping
-    fun obtenerTodos(): List<ContratoPlan> {
-        return service.obtenerTodos()
-    }
+    @GetMapping("/mi-plan/{id}")
+    fun obtenerMiPlan(@PathVariable id: Int): MiPlanDTO {
 
-    @GetMapping("/{id}")
-    fun obtenerPorId(@PathVariable id: Int): ContratoPlan? {
-        return service.obtenerPorId(id)
-    }
+        val resultado = contratoService.obtenerMiPlan(id)
 
-    @PostMapping
-    fun crear(@RequestBody relacion: ContratoPlan): String {
-        return service.crear(relacion)
-    }
-
-    @PutMapping("/{id}")
-    fun actualizar(
-        @PathVariable id: Int,
-        @RequestBody relacion: ContratoPlan
-    ): String {
-        return service.actualizar(id, relacion)
-    }
-
-    @DeleteMapping("/{id}")
-    fun eliminar(@PathVariable id: Int): String {
-        return service.eliminar(id)
+        return resultado ?: MiPlanDTO(
+            contrato_id = 0,
+            plan_nombre = "Sin nombre",
+            plan_precio = 0.0,
+            plan_descripcion = "Sin descripción",
+            servicios = emptyList(),
+            productos = emptyList(),
+            pagos = emptyList()
+        )
     }
 }

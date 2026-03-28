@@ -2,7 +2,7 @@ package com.example.cronograma.service
 
 import com.example.cronograma.model.Contrato
 import com.example.cronograma.dto.PagoDTO
-import com.example.cronograma.dto.MiPlanDTO
+import com.example.cronograma.model.DTO.MiPlanDTO
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 
@@ -37,26 +37,6 @@ class ContratoService(
                 rs.getInt("cliente_id")
             )
         }.firstOrNull()
-    }
-
-    fun crearContrato(contrato: Contrato): Int {
-
-        val sql = """
-        INSERT INTO contrato (cliente_id, contrato_estado, contrato_valor)
-        VALUES (?, ?, ?)
-    """
-
-        jdbcTemplate.update(
-            sql,
-            contrato.cliente_id,
-            contrato.contrato_estado,
-            contrato.contrato_valor
-        )
-
-        return jdbcTemplate.queryForObject(
-            "SELECT LAST_INSERT_ID()",
-            Int::class.java
-        )!!
     }
 
     fun actualizarContrato(id: Int, contrato: Contrato): String {
@@ -177,5 +157,31 @@ class ContratoService(
             productos = productos,
             pagos = pagos
         )
+    }
+
+    fun crearContrato(contrato: Contrato): Int {
+
+        val existente = obtenerContratoPorCliente(contrato.cliente_id)
+
+        if (existente != null) {
+            return existente.contrato_id!!
+        }
+
+        val sql = """
+        INSERT INTO contrato (cliente_id, contrato_estado, contrato_valor)
+        VALUES (?, ?, ?)
+    """
+
+        jdbcTemplate.update(
+            sql,
+            contrato.cliente_id,
+            contrato.contrato_estado,
+            contrato.contrato_valor
+        )
+
+        return jdbcTemplate.queryForObject(
+            "SELECT LAST_INSERT_ID()",
+            Int::class.java
+        )!!
     }
 }

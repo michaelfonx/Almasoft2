@@ -1,7 +1,7 @@
 package com.example.cronograma.controller
 
 import com.example.cronograma.model.Contrato
-import com.example.cronograma.dto.MiPlanDTO
+import com.example.cronograma.model.DTO.MiPlanDTO
 import com.example.cronograma.service.ContratoService
 import org.springframework.web.bind.annotation.*
 
@@ -39,7 +39,7 @@ class ContratoController(
         return contratoService.eliminarContrato(id)
     }
 
-    // 🔥 NUEVO ENDPOINT
+
     @GetMapping("/mi-plan/{clienteId}")
     fun obtenerMiPlan(@PathVariable clienteId: Int): MiPlanDTO? {
         return contratoService.obtenerMiPlan(clienteId)

@@ -17,25 +17,24 @@ class UsuarioService(
         val passwordEncriptada = encoder.encode(usuario.usuario_credencial)
 
         val sqlUsuario = """
-        INSERT INTO usuario(
-            usuario_primer_nombre,
-            usuario_segundo_nombre,
-            usuario_primer_apellido,
-            usuario_segundo_apellido,
-            usuario_documento,
-            usuario_correo,
-            usuario_direccion,
-            usuario_credencial
-        )
-        VALUES (?,?,?,?,?,?,?,?)
+            INSERT INTO USUARIO(
+                usuario_primer_nombre,
+                usuario_segundo_nombre,
+                usuario_primer_apellido,
+                usuario_segundo_apellido,
+                usuario_documento,
+                usuario_correo,
+                usuario_direccion,
+                usuario_credencial
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """
 
         jdbcTemplate.update(
             sqlUsuario,
             usuario.usuario_primer_nombre,
-            usuario.usuario_segundo_nombre,
+            usuario.usuario_segundo_nombre ?: "",
             usuario.usuario_primer_apellido,
-            usuario.usuario_segundo_apellido,
+            usuario.usuario_segundo_apellido ?: "",
             usuario.usuario_documento,
             usuario.usuario_correo,
             usuario.usuario_direccion,
@@ -43,33 +42,36 @@ class UsuarioService(
         )
 
         val usuarioId = jdbcTemplate.queryForObject(
-            "SELECT LAST_INSERT_ID()",
-            Int::class.java
-        )!!
+            "SELECT LAST_INSERT_ID()", Int::class.java
+        ) ?: throw RuntimeException("Error obteniendo ID usuario")
 
-        jdbcTemplate.update(
-            "INSERT INTO rol_usuario (rol_id, usuario_id, estado_cred) VALUES (?, ?, 1)",
-            rolId, usuarioId
-        )
+        val sqlRol = """
+            INSERT INTO ROL_USUARIO (rol_id, usuario_id, estado_cred)
+            VALUES (?, ?, true)
+        """
+
+        jdbcTemplate.update(sqlRol, rolId, usuarioId)
+
+        val fechaNacimiento = usuario.fecha_nacimiento.ifBlank { "2000-01-01" }
 
         val sqlCliente = """
-        INSERT INTO cliente (cliente_id, cliente_fecha_nacimiento, cliente_edad)
-        VALUES (?, ?, TIMESTAMPDIFF(YEAR, ?, CURDATE()))
-        """
+    INSERT INTO CLIENTE (cliente_id, cliente_fecha_nacimiento, cliente_edad)
+    VALUES (?, ?, TIMESTAMPDIFF(YEAR, ?, CURDATE()))
+"""
 
         jdbcTemplate.update(
             sqlCliente,
             usuarioId,
-            usuario.fecha_nacimiento,
-            usuario.fecha_nacimiento
+            fechaNacimiento,
+            fechaNacimiento
         )
 
-        return "Usuario registrado"
+        return "Usuario registrado correctamente"
     }
 
     fun login(correo: String, password: String): Usuario? {
 
-        val sql = "SELECT * FROM usuario WHERE usuario_correo = ?"
+        val sql = "SELECT * FROM USUARIO WHERE usuario_correo = ?"
 
         val usuarios = jdbcTemplate.query(sql, { rs, _ ->
             Usuario(
@@ -84,7 +86,6 @@ class UsuarioService(
                 fecha_nacimiento = "",
                 usuario_credencial = rs.getString("usuario_credencial")
             )
-
         }, correo)
 
         val usuario = usuarios.firstOrNull() ?: return null
@@ -92,9 +93,49 @@ class UsuarioService(
         return if (encoder.matches(password, usuario.usuario_credencial)) usuario else null
     }
 
+    fun obtenerRolIdPorUsuario(usuarioId: Int): Int {
+
+        val sql = """
+            SELECT rol_id 
+            FROM ROL_USUARIO 
+            WHERE usuario_id = ?
+            LIMIT 1
+        """
+
+        val resultado = jdbcTemplate.query(sql, { rs, _ ->
+            rs.getInt("rol_id")
+        }, usuarioId)
+
+        return resultado.firstOrNull() ?: 1
+    }
+
+    fun obtenerNombreRol(rolId: Int): String {
+
+        val sql = """
+            SELECT rol_nombre 
+            FROM ROL 
+            WHERE rol_id = ?
+        """
+
+        val resultado = jdbcTemplate.query(sql, { rs, _ ->
+            rs.getString("rol_nombre")
+        }, rolId)
+
+        return resultado.firstOrNull() ?: "CLIENTE"
+    }
+
+    fun obtenerClienteIdPorUsuario(usuarioId: Int): Int? {
+
+        val sql = "SELECT cliente_id FROM CLIENTE WHERE cliente_id = ?"
+
+        return jdbcTemplate.query(sql, arrayOf(usuarioId)) { rs, _ ->
+            rs.getInt("cliente_id")
+        }.firstOrNull()
+    }
+
     fun obtenerUsuarios(): List<Usuario> {
 
-        val sql = "SELECT * FROM usuario"
+        val sql = "SELECT * FROM USUARIO"
 
         return jdbcTemplate.query(sql) { rs, _ ->
             Usuario(
@@ -106,15 +147,15 @@ class UsuarioService(
                 rs.getInt("usuario_documento"),
                 rs.getString("usuario_correo"),
                 rs.getString("usuario_direccion"),
-                rs.getString("usuario_credencial"),
-                ""
+                "",
+                rs.getString("usuario_credencial")
             )
         }
     }
 
     fun obtenerUsuarioPorId(id: Int): Usuario? {
 
-        val sql = "SELECT * FROM usuario WHERE usuario_id = ?"
+        val sql = "SELECT * FROM USUARIO WHERE usuario_id = ?"
 
         val lista = jdbcTemplate.query(sql, { rs, _ ->
             Usuario(
@@ -126,8 +167,8 @@ class UsuarioService(
                 rs.getInt("usuario_documento"),
                 rs.getString("usuario_correo"),
                 rs.getString("usuario_direccion"),
-                rs.getString("usuario_credencial"),
-                ""
+                "",
+                rs.getString("usuario_credencial")
             )
         }, id)
 
@@ -137,70 +178,41 @@ class UsuarioService(
     fun actualizarUsuario(id: Int, usuario: Usuario): Pair<Int, String> {
 
         val sql = """
-        UPDATE usuario SET
-            usuario_primer_nombre = ?,
-            usuario_segundo_nombre = ?,
-            usuario_primer_apellido = ?,
-            usuario_segundo_apellido = ?,
-            usuario_documento = ?,
-            usuario_correo = ?,
-            usuario_direccion = ?
-        WHERE usuario_id = ?
+            UPDATE USUARIO SET
+                usuario_primer_nombre = ?,
+                usuario_segundo_nombre = ?,
+                usuario_primer_apellido = ?,
+                usuario_segundo_apellido = ?,
+                usuario_documento = ?,
+                usuario_correo = ?,
+                usuario_direccion = ?
+            WHERE usuario_id = ?
         """
 
         val filas = jdbcTemplate.update(
             sql,
             usuario.usuario_primer_nombre,
-            usuario.usuario_segundo_nombre,
+            usuario.usuario_segundo_nombre ?: "",
             usuario.usuario_primer_apellido,
-            usuario.usuario_segundo_apellido,
+            usuario.usuario_segundo_apellido ?: "",
             usuario.usuario_documento,
             usuario.usuario_correo,
             usuario.usuario_direccion,
             id
         )
 
-        return if (filas > 0) 200 to "Usuario actualizado" else 404 to "Usuario no encontrado"
+        return if (filas > 0) 200 to "Usuario actualizado"
+        else 404 to "Usuario no encontrado"
     }
 
     fun eliminarUsuario(id: Int): Pair<Int, String> {
 
         val filas = jdbcTemplate.update(
-            "DELETE FROM usuario WHERE usuario_id = ?",
+            "DELETE FROM USUARIO WHERE usuario_id = ?",
             id
         )
 
-        return if (filas > 0) 200 to "Usuario eliminado" else 404 to "Usuario no encontrado"
-    }
-
-    fun obtenerRolIdPorUsuario(usuarioId: Int): Int {
-
-        val sql = """
-        SELECT rol_id 
-        FROM rol_usuario 
-        WHERE usuario_id = ?
-        LIMIT 1
-        """
-
-        val resultado = jdbcTemplate.query(sql, { rs, _ ->
-            rs.getInt("rol_id")
-        }, usuarioId)
-
-        return resultado.firstOrNull() ?: 0
-    }
-
-    fun obtenerNombreRol(rolId: Int): String {
-
-        val sql = """
-        SELECT rol_nombre 
-        FROM rol 
-        WHERE rol_id = ?
-        """
-
-        val resultado = jdbcTemplate.query(sql, { rs, _ ->
-            rs.getString("rol_nombre")
-        }, rolId)
-
-        return resultado.firstOrNull() ?: "Cliente"
+        return if (filas > 0) 200 to "Usuario eliminado"
+        else 404 to "Usuario no encontrado"
     }
 }

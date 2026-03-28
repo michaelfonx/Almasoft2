@@ -10,25 +10,25 @@ class PagoController(
     private val pagoService: PagoService
 ) {
 
-    // GET TODOS
+
     @GetMapping("/pagos")
     fun verPagos(): List<Pago> {
         return pagoService.obtenerPagos()
     }
 
-    // GET POR ID
+
     @GetMapping("/pagos/{id}")
     fun verPagoPorId(@PathVariable id: Int): Pago? {
         return pagoService.obtenerPagoPorId(id)
     }
 
-    // POST
+
     @PostMapping("/pagos")
     fun crearPago(@RequestBody pago: Pago): String {
         return pagoService.crearPago(pago)
     }
 
-    // PUT
+
     @PutMapping("/pagos/{id}")
     fun actualizarPago(
         @PathVariable id: Int,
@@ -37,13 +37,13 @@ class PagoController(
         return pagoService.actualizarPago(id, pago)
     }
 
-    // DELETE
+
     @DeleteMapping("/pagos/{id}")
     fun eliminarPago(@PathVariable id: Int): String {
         return pagoService.eliminarPago(id)
     }
 
-    // 🔥 CLAVE PARA TU APP
+
     @GetMapping("/pagos/contrato/{id}")
     fun pagosPorContrato(@PathVariable id: Int): List<Pago> {
         return pagoService.obtenerPagosPorContrato(id)
