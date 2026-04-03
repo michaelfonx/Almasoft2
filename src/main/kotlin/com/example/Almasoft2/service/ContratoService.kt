@@ -184,4 +184,60 @@ class ContratoService(
             Int::class.java
         )!!
     }
+
+    fun adquirirPlan(clienteId: Int, planId: Int, valor: Double): Int {
+
+        val contratoExistente = obtenerContratoPorCliente(clienteId)
+
+        val contratoId = if (contratoExistente != null) {
+            contratoExistente.contrato_id!!
+        } else {
+
+            val sql = """
+            INSERT INTO contrato (cliente_id, contrato_estado, contrato_valor)
+            VALUES (?, ?, ?)
+        """
+
+            jdbcTemplate.update(sql, clienteId, true, valor)
+
+            jdbcTemplate.queryForObject(
+                "SELECT LAST_INSERT_ID()",
+                Int::class.java
+            )!!
+        }
+
+        val existeRelacion = jdbcTemplate.query(
+            "SELECT * FROM contrato_plan WHERE contrato_id = ?",
+            arrayOf(contratoId)
+        ) { _, _ -> 1 }.isNotEmpty()
+
+        if (!existeRelacion) {
+            val sql = """
+            INSERT INTO contrato_plan (contrato_id, plan_id)
+            VALUES (?, ?)
+        """
+            jdbcTemplate.update(sql, contratoId, planId)
+        }
+
+        val productos = jdbcTemplate.query(
+            "SELECT producto_id FROM producto LIMIT 2"
+        ) { rs, _ -> rs.getInt("producto_id") }
+
+        productos.forEach { productoId ->
+            val existe = jdbcTemplate.query(
+                "SELECT * FROM contrato_producto WHERE contrato_id = ? AND producto_id = ?",
+                arrayOf(contratoId, productoId)
+            ) { _, _ -> 1 }.isNotEmpty()
+
+            if (!existe) {
+                jdbcTemplate.update(
+                    "INSERT INTO contrato_producto (contrato_id, producto_id) VALUES (?, ?)",
+                    contratoId,
+                    productoId
+                )
+            }
+        }
+
+        return contratoId
+    }
 }

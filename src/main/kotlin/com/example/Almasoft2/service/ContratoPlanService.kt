@@ -24,9 +24,9 @@ class ContratoPlanService(
         return jdbcTemplate.query(sql, arrayOf(clienteId)) { rs, _ ->
             MiPlanDTO(
                 contrato_id = rs.getInt("contrato_id"),
-                plan_nombre = rs.getString("plan_nombre"),
+                plan_nombre = rs.getString("plan_nombre") ?: "Sin nombre",
                 plan_precio = rs.getDouble("plan_precio"),
-                plan_descripcion = rs.getString("plan_descripcion"),
+                plan_descripcion = rs.getString("plan_descripcion") ?: "Sin descripción",
                 servicios = emptyList(),
                 productos = emptyList(),
                 pagos = emptyList<PagoDTO>()

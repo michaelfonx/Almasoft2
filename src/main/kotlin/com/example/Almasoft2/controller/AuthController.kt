@@ -28,7 +28,11 @@ class AuthController(
 
         val usuarioId = usuario.usuario_id ?: throw RuntimeException("Usuario sin ID")
 
-        val rolId = usuarioService.obtenerRolIdPorUsuario(usuarioId)
+        val rolId = try {
+            usuarioService.obtenerRolIdPorUsuario(usuarioId)
+        } catch (e: Exception) {
+            1
+        }
 
         val rol = try {
             usuarioService.obtenerNombreRol(rolId)
@@ -55,21 +59,26 @@ class AuthController(
         )
     }
     @PostMapping("/registro")
-    fun registrar(@RequestBody request: Map<String, Any>): ResponseEntity<Any> {
+    fun registrar(@RequestBody request: Map<String, Any?>): ResponseEntity<Any> {
 
         try {
 
             val usuario = Usuario(
-                usuario_primer_nombre = request["usuario_primer_nombre"].toString(),
+                usuario_primer_nombre = request["usuario_primer_nombre"]?.toString() ?: "",
                 usuario_segundo_nombre = request["usuario_segundo_nombre"]?.toString() ?: "",
-                usuario_primer_apellido = request["usuario_primer_apellido"].toString(),
+                usuario_primer_apellido = request["usuario_primer_apellido"]?.toString() ?: "",
                 usuario_segundo_apellido = request["usuario_segundo_apellido"]?.toString() ?: "",
-                usuario_documento = (request["usuario_documento"] as Number).toInt(),
-                usuario_correo = request["usuario_correo"].toString(),
-                usuario_direccion = request["usuario_direccion"].toString(),
+                usuario_documento = request["usuario_documento"]?.toString()?.toIntOrNull() ?: 0,
+                usuario_correo = request["usuario_correo"]?.toString() ?: "",
+                usuario_direccion = request["usuario_direccion"]?.toString() ?: "",
                 fecha_nacimiento = request["fecha_nacimiento"]?.toString() ?: "",
-                usuario_credencial = request["usuario_credencial"].toString()
+                usuario_credencial = request["usuario_credencial"]?.toString() ?: ""
             )
+
+            if (usuario.usuario_correo.isBlank() || usuario.usuario_credencial.isBlank()) {
+                return ResponseEntity.badRequest()
+                    .body(mapOf("error" to "Correo y contraseña obligatorios"))
+            }
 
             val rolId = (request["rol_id"] as? Number)?.toInt() ?: 1
 

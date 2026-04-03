@@ -44,4 +44,13 @@ class ContratoController(
     fun obtenerMiPlan(@PathVariable clienteId: Int): MiPlanDTO? {
         return contratoService.obtenerMiPlan(clienteId)
     }
+    @PostMapping("/adquirir-plan")
+    fun adquirirPlan(@RequestBody request: Map<String, Any>): Int {
+
+        val clienteId = (request["cliente_id"] as Number).toInt()
+        val planId = (request["plan_id"] as Number).toInt()
+        val valor = (request["valor"] as Number).toDouble()
+
+        return contratoService.adquirirPlan(clienteId, planId, valor)
+    }
 }

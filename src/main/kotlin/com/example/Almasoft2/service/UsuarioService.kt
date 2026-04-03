@@ -74,8 +74,11 @@ class UsuarioService(
         val sql = "SELECT * FROM USUARIO WHERE usuario_correo = ?"
 
         val usuarios = jdbcTemplate.query(sql, { rs, _ ->
+
+            val id = rs.getObject("usuario_id", Int::class.java)
+
             Usuario(
-                usuario_id = rs.getInt("usuario_id"),
+                usuario_id = id,
                 usuario_primer_nombre = rs.getString("usuario_primer_nombre"),
                 usuario_segundo_nombre = rs.getString("usuario_segundo_nombre"),
                 usuario_primer_apellido = rs.getString("usuario_primer_apellido"),
@@ -86,11 +89,14 @@ class UsuarioService(
                 fecha_nacimiento = "",
                 usuario_credencial = rs.getString("usuario_credencial")
             )
-        }, correo)
+        }, correo.trim())
 
         val usuario = usuarios.firstOrNull() ?: return null
 
-        return if (encoder.matches(password, usuario.usuario_credencial)) usuario else null
+        val passwordInput = password.trim()
+        val passwordBD = usuario.usuario_credencial.trim()
+
+        return if (encoder.matches(passwordInput, passwordBD)) usuario else null
     }
 
     fun obtenerRolIdPorUsuario(usuarioId: Int): Int {
