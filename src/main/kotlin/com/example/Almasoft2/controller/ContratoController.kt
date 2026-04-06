@@ -1,5 +1,6 @@
 package com.example.cronograma.controller
 
+import com.example.Almasoft2.model.DTO.AdquirirPlanRequest
 import com.example.cronograma.model.Contrato
 import com.example.cronograma.model.DTO.MiPlanDTO
 import com.example.cronograma.service.ContratoService
@@ -45,12 +46,34 @@ class ContratoController(
         return contratoService.obtenerMiPlan(clienteId)
     }
     @PostMapping("/adquirir-plan")
-    fun adquirirPlan(@RequestBody request: Map<String, Any>): Int {
+    fun adquirirPlan(@RequestBody request: AdquirirPlanRequest): Map<String, Int> {
 
-        val clienteId = (request["cliente_id"] as Number).toInt()
-        val planId = (request["plan_id"] as Number).toInt()
-        val valor = (request["valor"] as Number).toDouble()
+        val contratoId = contratoService.adquirirPlan(
+            request.cliente_id,
+            request.plan_id,
+            request.valor
+        )
 
-        return contratoService.adquirirPlan(clienteId, planId, valor)
+        return mapOf("contrato_id" to contratoId)
+    }
+    @PostMapping("/afiliado")
+    fun agregarAfiliado(@RequestBody body: Map<String, Int>): String {
+
+        val contratoId = body["contrato_id"] ?: 0
+        val usuarioId = body["usuario_id"] ?: 0
+
+        return contratoService.agregarAfiliado(contratoId, usuarioId)
+    }
+    @GetMapping("/afiliados/{contratoId}")
+    fun obtenerAfiliados(@PathVariable contratoId: Int) =
+        contratoService.obtenerAfiliados(contratoId)
+
+    @PostMapping("/afiliado-documento")
+    fun agregarAfiliadoPorDocumento(@RequestBody body: Map<String, Int>): String {
+
+        val contratoId = body["contrato_id"] ?: return "Contrato inválido"
+        val documento = body["documento"] ?: return "Documento inválido"
+
+        return contratoService.agregarAfiliadoPorDocumento(contratoId, documento)
     }
 }

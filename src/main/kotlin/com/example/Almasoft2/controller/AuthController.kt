@@ -26,7 +26,8 @@ class AuthController(
 
         val token = jwtUtil.generarToken(usuario.usuario_correo)
 
-        val usuarioId = usuario.usuario_id ?: throw RuntimeException("Usuario sin ID")
+        val usuarioId = usuario.usuario_id
+            ?: throw RuntimeException("Usuario sin ID")
 
         val rolId = try {
             usuarioService.obtenerRolIdPorUsuario(usuarioId)
@@ -40,10 +41,18 @@ class AuthController(
             "CLIENTE"
         }
 
-        val clienteId = try {
+        // 🔥 🔥 AQUÍ ESTÁ EL FIX REAL 🔥 🔥
+        var clienteId = try {
             usuarioService.obtenerClienteIdPorUsuario(usuarioId)
         } catch (e: Exception) {
             null
+        }
+
+        if (clienteId == null) {
+
+            usuarioService.crearClienteSiNoExiste(usuarioId)
+
+            clienteId = usuarioId
         }
 
         return LoginResponse(

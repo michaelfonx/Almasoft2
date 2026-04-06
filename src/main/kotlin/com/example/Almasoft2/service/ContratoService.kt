@@ -2,6 +2,7 @@ package com.example.cronograma.service
 
 import com.example.cronograma.model.Contrato
 import com.example.cronograma.dto.PagoDTO
+import com.example.cronograma.model.DTO.AfiliadoDTO
 import com.example.cronograma.model.DTO.MiPlanDTO
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
@@ -86,73 +87,71 @@ class ContratoService(
 
     fun obtenerMiPlan(clienteId: Int): MiPlanDTO? {
 
-        val contrato = obtenerContratoPorCliente(clienteId) ?: return null
-
-
-        val planSql = """
-        SELECT p.plan_id, p.plan_nombre, p.plan_precio, p.plan_descripcion
-        FROM contrato_plan cp
+        val contrato = jdbcTemplate.query(
+            """
+        SELECT c.contrato_id, p.plan_id, p.plan_nombre, p.plan_precio, p.plan_descripcion
+        FROM contrato c
+        JOIN contrato_plan cp ON c.contrato_id = cp.contrato_id
         JOIN plan_funebre p ON cp.plan_id = p.plan_id
-        WHERE cp.contrato_id = ?
+        WHERE c.cliente_id = ?
         LIMIT 1
-    """
-
-        val plan = jdbcTemplate.query(planSql, arrayOf(contrato.contrato_id)) { rs, _ ->
-            listOf(
-                rs.getInt("plan_id"),
-                rs.getString("plan_nombre"),
-                rs.getDouble("plan_precio"),
-                rs.getString("plan_descripcion")
+        """, arrayOf(clienteId)
+        ) { rs, _ ->
+            mapOf(
+                "contrato_id" to rs.getInt("contrato_id"),
+                "plan_id" to rs.getInt("plan_id"),
+                "plan_nombre" to rs.getString("plan_nombre"),
+                "plan_precio" to rs.getDouble("plan_precio"),
+                "plan_descripcion" to rs.getString("plan_descripcion")
             )
         }.firstOrNull() ?: return null
 
-        val planId = plan[0] as Int
-        val planNombre = plan[1] as String
-        val planPrecio = plan[2] as Double
-        val planDescripcion = plan[3] as String
+        val contratoId = contrato["contrato_id"] as Int
+        val planId = contrato["plan_id"] as Int
 
 
-        val serviciosSql = """
+        val servicios = jdbcTemplate.query(
+            """
         SELECT s.servicio_nombre
-        FROM servicio_plan sp
-        JOIN servicio s ON sp.servicio_id = s.servicio_id
+        FROM servicio s
+        JOIN servicio_plan sp ON s.servicio_id = sp.servicio_id
         WHERE sp.plan_id = ?
-    """
-
-        val servicios = jdbcTemplate.query(serviciosSql, arrayOf(planId)) { rs, _ ->
+        """, arrayOf(planId)
+        ) { rs, _ ->
             rs.getString("servicio_nombre")
         }
 
-        val productosSql = """
-        SELECT pr.producto_nombre
-        FROM contrato_producto cp
-        JOIN producto pr ON cp.producto_id = pr.producto_id
-        WHERE cp.contrato_id = ?
-    """
 
-        val productos = jdbcTemplate.query(productosSql, arrayOf(contrato.contrato_id)) { rs, _ ->
+        val productos = jdbcTemplate.query(
+            """
+        SELECT p.producto_nombre
+        FROM producto p
+        JOIN contrato_producto cp ON p.producto_id = cp.producto_id
+        WHERE cp.contrato_id = ?
+        """, arrayOf(contratoId)
+        ) { rs, _ ->
             rs.getString("producto_nombre")
         }
 
 
-        val pagosSql = """
+        val pagos = jdbcTemplate.query(
+            """
         SELECT pago_metodo, pago_fecha
         FROM pago
         WHERE contrato_id = ?
-    """
-
-        val pagos = jdbcTemplate.query(pagosSql, arrayOf(contrato.contrato_id)) { rs, _ ->
-            PagoDTO(
+        """, arrayOf(contratoId)
+        ) { rs, _ ->
+            com.example.cronograma.dto.PagoDTO(
                 metodo = rs.getString("pago_metodo"),
                 fecha = rs.getString("pago_fecha")
             )
         }
 
         return MiPlanDTO(
-            contrato_id = contrato.contrato_id!!,
-            plan_nombre = planNombre,
-            plan_precio = planPrecio,
-            plan_descripcion = planDescripcion,
+            contrato_id = contratoId,
+            plan_nombre = contrato["plan_nombre"] as String,
+            plan_precio = contrato["plan_precio"] as Double,
+            plan_descripcion = contrato["plan_descripcion"] as String,
             servicios = servicios,
             productos = productos,
             pagos = pagos
@@ -193,12 +192,13 @@ class ContratoService(
             contratoExistente.contrato_id!!
         } else {
 
-            val sql = """
+            jdbcTemplate.update(
+                """
             INSERT INTO contrato (cliente_id, contrato_estado, contrato_valor)
             VALUES (?, ?, ?)
-        """
-
-            jdbcTemplate.update(sql, clienteId, true, valor)
+            """,
+                clienteId, true, valor
+            )
 
             jdbcTemplate.queryForObject(
                 "SELECT LAST_INSERT_ID()",
@@ -212,18 +212,20 @@ class ContratoService(
         ) { _, _ -> 1 }.isNotEmpty()
 
         if (!existeRelacion) {
-            val sql = """
-            INSERT INTO contrato_plan (contrato_id, plan_id)
-            VALUES (?, ?)
-        """
-            jdbcTemplate.update(sql, contratoId, planId)
+            jdbcTemplate.update(
+                "INSERT INTO contrato_plan (contrato_id, plan_id) VALUES (?, ?)",
+                contratoId,
+                planId
+            )
         }
 
+
         val productos = jdbcTemplate.query(
-            "SELECT producto_id FROM producto LIMIT 2"
+            "SELECT producto_id FROM producto WHERE producto_estado = 1"
         ) { rs, _ -> rs.getInt("producto_id") }
 
         productos.forEach { productoId ->
+
             val existe = jdbcTemplate.query(
                 "SELECT * FROM contrato_producto WHERE contrato_id = ? AND producto_id = ?",
                 arrayOf(contratoId, productoId)
@@ -239,5 +241,88 @@ class ContratoService(
         }
 
         return contratoId
+    }
+
+    fun agregarAfiliado(contratoId: Int, usuarioId: Int): String {
+
+        val existe = jdbcTemplate.query(
+            "SELECT * FROM afiliado WHERE afiliado_id = ? AND contrato_id = ?",
+            arrayOf(usuarioId, contratoId)
+        ) { _, _ -> 1 }.isNotEmpty()
+
+        if (existe) return "Ya está afiliado"
+
+        jdbcTemplate.update(
+            "INSERT INTO afiliado (afiliado_id, contrato_id) VALUES (?, ?)",
+            usuarioId, contratoId
+        )
+
+        return "Afiliado agregado"
+    }
+
+    fun obtenerAfiliados(contratoId: Int): List<AfiliadoDTO> {
+
+        return jdbcTemplate.query(
+            """
+        SELECT u.usuario_id, u.usuario_primer_nombre, u.usuario_primer_apellido
+        FROM afiliado a
+        JOIN usuario u ON a.afiliado_id = u.usuario_id
+        WHERE a.contrato_id = ?
+        """,
+            arrayOf(contratoId)
+        ) { rs, _ ->
+            AfiliadoDTO(
+                usuario_id = rs.getInt("usuario_id"),
+                nombre = rs.getString("usuario_primer_nombre"),
+                apellido = rs.getString("usuario_primer_apellido")
+            )
+        }
+
+    }
+
+    fun agregarAfiliadoPorDocumento(contratoId: Int, documento: Int): String {
+
+        if (contratoId == 0) return "Contrato inválido"
+
+        val usuarioId = jdbcTemplate.query(
+            """
+        SELECT usuario_id 
+        FROM usuario 
+        WHERE usuario_documento = ?
+        LIMIT 1
+        """.trimIndent(),
+            arrayOf(documento)
+        ) { rs, _ -> rs.getInt("usuario_id") }
+            .firstOrNull()
+
+        if (usuarioId == null) {
+            return "Usuario no encontrado"
+        }
+
+        val existe = jdbcTemplate.query(
+            """
+        SELECT 1 
+        FROM afiliado 
+        WHERE afiliado_id = ? AND contrato_id = ?
+        LIMIT 1
+        """.trimIndent(),
+            arrayOf(usuarioId, contratoId)
+        ) { _, _ -> 1 }.isNotEmpty()
+
+        if (existe) return "Ya está afiliado"
+
+        return try {
+            jdbcTemplate.update(
+                """
+            INSERT INTO afiliado (afiliado_id, contrato_id) 
+            VALUES (?, ?)
+            """.trimIndent(),
+                usuarioId,
+                contratoId
+            )
+            "Afiliado agregado"
+        } catch (e: Exception) {
+            "Error al insertar"
+        }
     }
 }

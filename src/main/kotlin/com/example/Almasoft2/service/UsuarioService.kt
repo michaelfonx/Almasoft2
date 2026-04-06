@@ -132,11 +132,17 @@ class UsuarioService(
 
     fun obtenerClienteIdPorUsuario(usuarioId: Int): Int? {
 
-        val sql = "SELECT cliente_id FROM CLIENTE WHERE cliente_id = ?"
+        val sql = """
+        SELECT cliente_id 
+        FROM CLIENTE 
+        WHERE cliente_id = ?
+    """
 
-        return jdbcTemplate.query(sql, arrayOf(usuarioId)) { rs, _ ->
-            rs.getInt("cliente_id")
-        }.firstOrNull()
+        return try {
+            jdbcTemplate.queryForObject(sql, Int::class.java, usuarioId)
+        } catch (e: Exception) {
+            null
+        }
     }
 
     fun obtenerUsuarios(): List<Usuario> {
@@ -220,5 +226,23 @@ class UsuarioService(
 
         return if (filas > 0) 200 to "Usuario eliminado"
         else 404 to "Usuario no encontrado"
+    }
+    fun crearClienteSiNoExiste(usuarioId: Int) {
+
+        val existe = jdbcTemplate.query(
+            "SELECT cliente_id FROM CLIENTE WHERE cliente_id = ?",
+            arrayOf(usuarioId)
+        ) { rs, _ -> rs.getInt("cliente_id") }.isNotEmpty()
+
+        if (!existe) {
+
+            jdbcTemplate.update(
+                """
+            INSERT INTO CLIENTE (cliente_id, cliente_fecha_nacimiento, cliente_edad)
+            VALUES (?, CURDATE(), 0)
+            """,
+                usuarioId
+            )
+        }
     }
 }
