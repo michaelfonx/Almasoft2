@@ -5,6 +5,8 @@ import com.example.cronograma.model.Contrato
 import com.example.cronograma.model.DTO.MiPlanDTO
 import com.example.cronograma.service.ContratoService
 import org.springframework.web.bind.annotation.*
+import org.springframework.http.ResponseEntity
+import org.springframework.http.MediaType
 
 @RestController
 @RequestMapping("/api")
@@ -75,5 +77,18 @@ class ContratoController(
         val documento = body["documento"] ?: return "Documento inválido"
 
         return contratoService.agregarAfiliadoPorDocumento(contratoId, documento)
+    }
+    @PostMapping("/contrato-producto", produces = [MediaType.APPLICATION_JSON_VALUE])
+    fun agregarProductoContrato(@RequestBody body: Map<String, Int>): ResponseEntity<Map<String, String>> {
+
+        val contratoId = body["contrato_id"] ?: return ResponseEntity.badRequest()
+            .body(mapOf("error" to "Contrato inválido"))
+
+        val productoId = body["producto_id"] ?: return ResponseEntity.badRequest()
+            .body(mapOf("error" to "Producto inválido"))
+
+        val resultado = contratoService.agregarProductoAContrato(contratoId, productoId)
+
+        return ResponseEntity.ok(mapOf("mensaje" to resultado))
     }
 }

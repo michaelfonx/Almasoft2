@@ -10,21 +10,24 @@ class ProductoService(
 ) {
 
 
-    fun obtenerProductos(): List<Producto> {
+    fun obtenerProductos(): List<Map<String, Any>> {
 
-        val sql = "SELECT * FROM producto"
+        val sql = """
+        SELECT 
+            p.producto_id,
+            p.producto_nombre,
+            p.producto_descripcion,
+            p.producto_precio,
+            p.producto_stock,
+            p.producto_estado,
+            s.subcategoria_nombre,
+            c.categoria_nombre
+        FROM producto p
+        JOIN subcategoria s ON p.subcategoria_id = s.subcategoria_id
+        JOIN categoria c ON s.categoria_id = c.categoria_id
+    """
 
-        return jdbcTemplate.query(sql) { rs, _ ->
-            Producto(
-                rs.getInt("producto_id"),
-                rs.getString("producto_nombre"),
-                rs.getString("producto_descripcion"),
-                rs.getDouble("producto_precio"),
-                rs.getInt("producto_stock"),
-                rs.getBoolean("producto_estado"),
-                rs.getInt("subcategoria_id")
-            )
-        }
+        return jdbcTemplate.queryForList(sql)
     }
 
 
@@ -111,5 +114,43 @@ class ProductoService(
 
         return if (filas > 0) "Producto eliminado"
         else "Producto no encontrado"
+    }
+    fun buscarProductos(nombre: String): List<Producto> {
+
+        val sql = """
+        SELECT * FROM producto
+        WHERE producto_nombre LIKE ?
+    """
+
+        return jdbcTemplate.query(sql, arrayOf("%$nombre%")) { rs, _ ->
+            Producto(
+                rs.getInt("producto_id"),
+                rs.getString("producto_nombre"),
+                rs.getString("producto_descripcion"),
+                rs.getDouble("producto_precio"),
+                rs.getInt("producto_stock"),
+                rs.getBoolean("producto_estado"),
+                rs.getInt("subcategoria_id")
+            )
+        }
+    }
+    fun obtenerProductosConCategoria(): List<Map<String, Any>> {
+
+        val sql = """
+        SELECT 
+            p.producto_id,
+            p.producto_nombre,
+            p.producto_descripcion,
+            p.producto_precio,
+            p.producto_stock,
+            p.producto_estado,
+            s.subcategoria_nombre,
+            c.categoria_nombre
+        FROM producto p
+        JOIN subcategoria s ON p.subcategoria_id = s.subcategoria_id
+        JOIN categoria c ON s.categoria_id = c.categoria_id
+    """
+
+        return jdbcTemplate.queryForList(sql)
     }
 }

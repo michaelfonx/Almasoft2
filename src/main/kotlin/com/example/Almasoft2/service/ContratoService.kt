@@ -325,4 +325,42 @@ class ContratoService(
             "Error al insertar"
         }
     }
+    fun agregarProductoContrato(contratoId: Int, productoId: Int): String {
+
+        val existe = jdbcTemplate.query(
+            "SELECT 1 FROM contrato_producto WHERE contrato_id = ? AND producto_id = ?",
+            arrayOf(contratoId, productoId)
+        ) { _, _ -> 1 }.isNotEmpty()
+
+        if (existe) return "Producto ya agregado al contrato"
+
+        jdbcTemplate.update(
+            "INSERT INTO contrato_producto (contrato_id, producto_id) VALUES (?, ?)",
+            contratoId,
+            productoId
+        )
+
+        return "Producto agregado al contrato"
+    }
+    fun agregarProductoAContrato(contratoId: Int, productoId: Int): String {
+
+        val existe = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM contrato_producto WHERE contrato_id = ? AND producto_id = ?",
+            Int::class.java,
+            contratoId,
+            productoId
+        ) ?: 0
+
+        if (existe > 0) {
+            return "Producto ya agregado al contrato"
+        }
+
+        jdbcTemplate.update(
+            "INSERT INTO contrato_producto (contrato_id, producto_id) VALUES (?, ?)",
+            contratoId,
+            productoId
+        )
+
+        return "Producto agregado al contrato"
+    }
 }
