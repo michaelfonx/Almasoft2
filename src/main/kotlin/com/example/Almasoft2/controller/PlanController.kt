@@ -1,5 +1,6 @@
 package com.example.cronograma.controller
 
+import com.example.cronograma.model.DTO.DetallePlanDTO
 import com.example.cronograma.model.Plan
 import com.example.cronograma.service.PlanService
 import org.springframework.web.bind.annotation.*
@@ -22,7 +23,8 @@ class PlanController(
 
     @PostMapping
     fun crearPlan(@RequestBody plan: Plan): String {
-        return planService.crearPlan(plan)
+        return planService.
+        crearPlan(plan)
     }
 
     @PutMapping("/{id}")
@@ -36,5 +38,9 @@ class PlanController(
     @DeleteMapping("/{id}")
     fun eliminarPlan(@PathVariable id: Int): String {
         return planService.eliminarPlan(id)
+    }
+    @GetMapping("/{id}/detalle")
+    fun obtenerDetalle(@PathVariable id: Int): DetallePlanDTO? {
+        return planService.obtenerDetallePlan(id)
     }
 }

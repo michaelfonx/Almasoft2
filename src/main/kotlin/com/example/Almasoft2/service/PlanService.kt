@@ -1,6 +1,9 @@
 package com.example.cronograma.service
 
+import com.example.Almasoft2.model.Servicio
+import com.example.cronograma.model.DTO.DetallePlanDTO
 import com.example.cronograma.model.Plan
+import com.example.cronograma.model.Producto
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.stereotype.Service
 
@@ -37,11 +40,60 @@ class PlanService(
         }.firstOrNull()
     }
 
+    fun obtenerDetallePlan(id: Int): DetallePlanDTO? {
+
+        val plan = obtenerPlanPorId(id) ?: return null
+
+        val sqlServicios = """
+            SELECT s.servicio_id, s.servicio_nombre, s.servicio_descripcion, s.servicio_precio
+            FROM servicio s
+            INNER JOIN servicio_plan sp ON s.servicio_id = sp.servicio_id
+            WHERE sp.plan_id = ?
+        """
+
+        val servicios = try {
+            jdbcTemplate.query(sqlServicios, arrayOf(id)) { rs, _ ->
+                Servicio(
+                    servicioId = rs.getLong("servicio_id"),
+                    servicioNombre = rs.getString("servicio_nombre"),
+                    servicioDescripcion = rs.getString("servicio_descripcion"),
+                    servicioPrecio = rs.getDouble("servicio_precio")
+                )
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+
+        val sqlProductos = """
+            SELECT p.*
+            FROM producto p
+            INNER JOIN plan_producto pp ON p.producto_id = pp.producto_id
+            WHERE pp.plan_id = ?
+        """
+
+        val productos = try {
+            jdbcTemplate.query(sqlProductos, arrayOf(id)) { rs, _ ->
+                Producto(
+                    rs.getInt("producto_id"),
+                    rs.getString("producto_nombre"),
+                    rs.getString("producto_descripcion"),
+                    rs.getDouble("producto_precio"),
+                    rs.getInt("producto_stock"),
+                    rs.getBoolean("producto_estado"),
+                    rs.getInt("subcategoria_id")
+                )
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+
+        return DetallePlanDTO(plan, servicios, productos)
+    }
     fun crearPlan(plan: Plan): String {
         val sql = """
-            INSERT INTO PLAN_FUNEBRE (plan_nombre, plan_precio, plan_estado, plan_descripcion)
-            VALUES (?, ?, ?, ?)
-        """
+        INSERT INTO PLAN_FUNEBRE (plan_nombre, plan_precio, plan_estado, plan_descripcion)
+        VALUES (?, ?, ?, ?)
+    """
 
         jdbcTemplate.update(
             sql,
@@ -56,10 +108,10 @@ class PlanService(
 
     fun actualizarPlan(id: Int, plan: Plan): String {
         val sql = """
-            UPDATE PLAN_FUNEBRE
-            SET plan_nombre = ?, plan_precio = ?, plan_estado = ?, plan_descripcion = ?
-            WHERE plan_id = ?
-        """
+        UPDATE PLAN_FUNEBRE
+        SET plan_nombre = ?, plan_precio = ?, plan_estado = ?, plan_descripcion = ?
+        WHERE plan_id = ?
+    """
 
         val filas = jdbcTemplate.update(
             sql,
