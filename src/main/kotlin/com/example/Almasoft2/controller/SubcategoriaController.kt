@@ -37,4 +37,8 @@ class SubcategoriaController(
     fun eliminarSubcategoria(@PathVariable id: Int): String {
         return subcategoriaService.eliminarSubcategoria(id)
     }
+    @GetMapping("/categoria/{id}")
+    fun obtenerPorCategoria(@PathVariable id: Int): List<Subcategoria> {
+        return subcategoriaService.obtenerPorCategoria(id)
+    }
 }

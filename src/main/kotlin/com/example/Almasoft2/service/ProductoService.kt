@@ -153,4 +153,20 @@ class ProductoService(
 
         return jdbcTemplate.queryForList(sql)
     }
+    fun obtenerPorSubcategoria(subId: Int): List<Producto> {
+
+        val sql = "SELECT * FROM producto WHERE subcategoria_id = ?"
+
+        return jdbcTemplate.query(sql, arrayOf(subId)) { rs, _ ->
+            Producto(
+                rs.getInt("producto_id"),
+                rs.getString("producto_nombre"),
+                rs.getString("producto_descripcion"),
+                rs.getDouble("producto_precio"),
+                rs.getInt("producto_stock"),
+                rs.getBoolean("producto_estado"),
+                rs.getInt("subcategoria_id")
+            )
+        }
+    }
 }

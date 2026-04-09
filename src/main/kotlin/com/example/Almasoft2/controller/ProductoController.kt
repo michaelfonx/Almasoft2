@@ -47,4 +47,8 @@ class ProductoController(
     fun obtenerProductosFull(): List<Map<String, Any>> {
         return productoService.obtenerProductosConCategoria()
     }
+    @GetMapping("/subcategoria/{id}")
+    fun obtenerPorSubcategoria(@PathVariable id: Int): List<Producto> {
+        return productoService.obtenerPorSubcategoria(id)
+    }
 }

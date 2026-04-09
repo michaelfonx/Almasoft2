@@ -41,4 +41,15 @@ class UsuarioController(
         return ResponseEntity.status(status)
             .body(mapOf("mensaje" to mensaje))
     }
+    @GetMapping("/documento/{doc}")
+    fun obtenerPorDocumento(@PathVariable doc: Int): ResponseEntity<Usuario> {
+
+        val usuario = usuarioService.obtenerUsuarioPorDocumento(doc)
+
+        return if (usuario != null) {
+            ResponseEntity.ok(usuario)
+        } else {
+            ResponseEntity.notFound().build()
+        }
+    }
 }
