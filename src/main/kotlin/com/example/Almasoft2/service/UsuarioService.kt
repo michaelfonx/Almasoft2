@@ -245,4 +245,25 @@ class UsuarioService(
             )
         }
     }
+    fun obtenerUsuarioPorDocumento(documento: Int): Usuario? {
+
+        val sql = "SELECT * FROM USUARIO WHERE usuario_documento = ?"
+
+        val lista = jdbcTemplate.query(sql, { rs, _ ->
+            Usuario(
+                rs.getInt("usuario_id"),
+                rs.getString("usuario_primer_nombre"),
+                rs.getString("usuario_segundo_nombre"),
+                rs.getString("usuario_primer_apellido"),
+                rs.getString("usuario_segundo_apellido"),
+                rs.getInt("usuario_documento"),
+                rs.getString("usuario_correo"),
+                rs.getString("usuario_direccion"),
+                "",
+                rs.getString("usuario_credencial")
+            )
+        }, documento)
+
+        return lista.firstOrNull()
+    }
 }

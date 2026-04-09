@@ -79,4 +79,16 @@ class SubcategoriaService(
         return if (filas > 0) "Subcategoria eliminada"
         else "Subcategoria no encontrada"
     }
+    fun obtenerPorCategoria(categoriaId: Int): List<Subcategoria> {
+
+        val sql = "SELECT * FROM subcategoria WHERE categoria_id = ?"
+
+        return jdbcTemplate.query(sql, arrayOf(categoriaId)) { rs, _ ->
+            Subcategoria(
+                rs.getInt("subcategoria_id"),
+                rs.getString("subcategoria_nombre"),
+                rs.getInt("categoria_id")
+            )
+        }
+    }
 }
