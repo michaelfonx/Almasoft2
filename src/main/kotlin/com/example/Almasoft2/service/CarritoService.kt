@@ -126,4 +126,17 @@ class CarritoService(
         jdbcTemplate.update("DELETE FROM carrito WHERE usuario_id=?", usuarioId)
 
         return "Pago guardado correctamente"
-    }}
+    }
+    fun obtenerHistorial(usuarioId: Int): List<Map<String, Any>> {
+
+        val sql = """
+        SELECT p.pago_metodo, p.pago_fecha, c.contrato_valor
+        FROM pago p
+        JOIN contrato c ON p.contrato_id = c.contrato_id
+        WHERE c.cliente_id = ?
+        ORDER BY p.pago_id DESC
+    """
+
+        return jdbcTemplate.queryForList(sql, usuarioId)
+    }
+}

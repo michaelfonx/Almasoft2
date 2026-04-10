@@ -37,4 +37,8 @@ class CarritoController(
 
         return mapOf("mensaje" to mensaje)
     }
+    @GetMapping("/historial/{usuarioId}")
+    fun historial(@PathVariable usuarioId: Int): List<Map<String, Any>> {
+        return carritoService.obtenerHistorial(usuarioId)
+    }
 }
