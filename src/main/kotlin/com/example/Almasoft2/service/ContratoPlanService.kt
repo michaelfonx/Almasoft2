@@ -56,7 +56,6 @@ class ContratoPlanService(
             arrayOf(contratoId)
         ) { rs, _ -> rs.getString("producto_nombre") }
 
-        // 🔹 PAGOS
         val pagos = jdbcTemplate.query(
             """
             SELECT pago_metodo, pago_fecha
