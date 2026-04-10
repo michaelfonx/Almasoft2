@@ -11,7 +11,7 @@ class CarritoController(
 ) {
 
     @GetMapping("/{usuarioId}")
-    fun obtenerCarrito(@PathVariable usuarioId: Int): List<Carrito> {
+    fun obtenerCarrito(@PathVariable usuarioId: Int): List<Map<String, Any>> {
         return carritoService.obtenerCarrito(usuarioId)
     }
 

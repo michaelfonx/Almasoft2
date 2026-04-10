@@ -9,19 +9,18 @@ class CarritoService(
     private val jdbcTemplate: JdbcTemplate
 ) {
 
-    fun obtenerCarrito(usuarioId: Int): List<Carrito> {
+    fun obtenerCarrito(usuarioId: Int): List<Map<String, Any>> {
 
-        val sql = "SELECT * FROM carrito WHERE usuario_id = ?"
+        val sql = """
+        SELECT c.carrito_id, c.usuario_id, c.producto_id,
+               c.cantidad, c.precio_unitario,
+               p.producto_nombre
+        FROM carrito c
+        JOIN producto p ON c.producto_id = p.producto_id
+        WHERE c.usuario_id = ?
+    """
 
-        return jdbcTemplate.query(sql, arrayOf(usuarioId)) { rs, _ ->
-            Carrito(
-                rs.getInt("carrito_id"),
-                rs.getInt("usuario_id"),
-                rs.getInt("producto_id"),
-                rs.getInt("cantidad"),
-                rs.getDouble("precio_unitario")
-            )
-        }
+        return jdbcTemplate.queryForList(sql, usuarioId)
     }
 
     fun agregarAlCarrito(carrito: Carrito): String {
@@ -138,5 +137,4 @@ class CarritoService(
     """
 
         return jdbcTemplate.queryForList(sql, usuarioId)
-    }
-}
+    }}
