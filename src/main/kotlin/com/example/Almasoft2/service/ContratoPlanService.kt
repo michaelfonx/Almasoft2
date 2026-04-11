@@ -34,7 +34,7 @@ class ContratoPlanService(
         val contratoId = contrato["contrato_id"] as Int
         val planId = contrato["plan_id"] as Int
 
-        // 🔹 SERVICIOS DEL PLAN
+
         val servicios = jdbcTemplate.query(
             """
             SELECT s.servicio_nombre 
@@ -45,7 +45,7 @@ class ContratoPlanService(
             arrayOf(planId)
         ) { rs, _ -> rs.getString("servicio_nombre") }
 
-        // 🔹 PRODUCTOS DEL CONTRATO
+
         val productos = jdbcTemplate.query(
             """
             SELECT p.producto_nombre

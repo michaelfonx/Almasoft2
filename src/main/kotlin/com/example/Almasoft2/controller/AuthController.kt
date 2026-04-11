@@ -41,7 +41,7 @@ class AuthController(
             "CLIENTE"
         }
 
-        // 🔥 🔥 AQUÍ ESTÁ EL FIX REAL 🔥 🔥
+
         var clienteId = try {
             usuarioService.obtenerClienteIdPorUsuario(usuarioId)
         } catch (e: Exception) {
